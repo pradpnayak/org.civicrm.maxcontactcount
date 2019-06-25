@@ -85,6 +85,41 @@ function maxcontactcount_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  */
 function maxcontactcount_civicrm_managed(&$entities) {
   _maxcontactcount_civix_civicrm_managed($entities);
+  $entities[] = [
+    'module' => 'org.civicrm.maxcontactcount',
+    'name' => 'maxcontactcount_cg_event',
+    'entity' => 'CustomGroup',
+    'update' => 'never',
+    'params' => [
+      'version' => 3,
+      'name' => 'maxcontactcount_cg_event',
+      'title' => ts('Other Details'),
+      'extends' => 'Event',
+      'style' => 'Inline',
+      'is_active' => TRUE,
+      'is_reserved' => TRUE,
+      'is_public' => FALSE,
+      'table_name' => 'civicrm_value_maxcontactcount_cg_event',
+    ],
+  ];
+  $entities[] = [
+    'module' => 'org.civicrm.maxcontactcount',
+    'name' => 'maxcontactcount_cf_event',
+    'entity' => 'CustomField',
+    'params' => [
+      'version' => 3,
+      'name' => 'maxcontactcount_cf_event',
+      'label' => ts('Max Contact Count'),
+      'data_type' => 'Int',
+      'html_type' => 'Text',
+      'is_active' => TRUE,
+      'text_length' => 255,
+      'is_searchable' => 0,
+      'weight' => 1,
+      'option_type' => 0,
+      'custom_group_id' => 'maxcontactcount_cg_event',
+    ],
+  ];
 }
 
 /**
