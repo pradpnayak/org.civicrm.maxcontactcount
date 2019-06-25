@@ -4,7 +4,7 @@
 
 ## Overview
 
-This extension sets maximum ticket purchased by contact for an event.
+This extension sets and restricts maximum ticket purchased by contact for an event.
 
 ## Installation
 
