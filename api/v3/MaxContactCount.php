@@ -9,5 +9,5 @@
  *   Array of retrieved EventSessions property values.
  */
 function civicrm_api3_max_contact_count_maxcountexceeded($params) {
-  return CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params);
+  return CRM_MaxContactCount_Utils::isContactExceededMaxCount($params);
 }

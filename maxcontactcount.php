@@ -203,7 +203,7 @@ function maxcontactcount_civicrm_validateForm(
         'event_id' => $fields['event_id'],
         'contact_id' => $contactId,
       ];
-      if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params)) {
+      if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params)) {
         $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_OFFLINE);
       }
     }
@@ -228,7 +228,7 @@ function maxcontactcount_civicrm_validateForm(
       'event_id' => $eventId,
       'contact_id' => $contactId,
     ];
-    if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params, $additionalParticipantCount)) {
+    if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params, $additionalParticipantCount)) {
       $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_ONLINE);
     }
   }
@@ -253,7 +253,7 @@ function maxcontactcount_civicrm_preProcess($formName, &$form) {
       'event_id' => $form->getVar('_eventId'),
       'contact_id' => $contactId,
     ];
-    if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params)) {
+    if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params)) {
       CRM_Core_Error::statusBounce(
         ts(MAX_COUNT_ERROR_MESSAGE_ONLINE),
         CRM_Utils_System::url('civicrm/event/info', "reset=1&id={$params['event_id']}",

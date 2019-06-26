@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Maxcontactcount_Utils {
+class CRM_MaxContactCount_Utils {
 
   /**
    * Holds contact ticket count.
