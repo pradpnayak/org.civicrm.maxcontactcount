@@ -211,12 +211,13 @@ function maxcontactcount_civicrm_validateForm(
   if (in_array($formName, [
     'CRM_Event_Form_Registration_Register',
   ])) {
-    $contactId = $form->getContactID();
-    if (empty($contactId)) {
-
-    }
+    $contactId = CRM_Event_Form_Registration_Register::getRegistrationContactID(
+      $fields,
+      $form,
+      FALSE
+    );
     $eventId = $form->getVar('_eventId');
-    if (empty($contactId) && empty($eventId)) {
+    if (empty($contactId) || empty($eventId)) {
       return;
     }
     $additionalParticipantCount = CRM_Utils_Array::value('additional_participants', $fields);
