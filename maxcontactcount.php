@@ -3,6 +3,15 @@
 require_once 'maxcontactcount.civix.php';
 use CRM_Maxcontactcount_ExtensionUtil as E;
 
+define(
+  'MAX_COUNT_ERROR_MESSAGE_OFFLINE',
+  'This contact has already reached the Max Count limit for this event.'
+);
+define(
+  'MAX_COUNT_ERROR_MESSAGE_ONLINE',
+  'You have already reached the Max Count limit for this event.'
+);
+
 /**
  * Implements hook_civicrm_config().
  *
@@ -195,8 +204,34 @@ function maxcontactcount_civicrm_validateForm(
         'contact_id' => $contactId,
       ];
       if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params)) {
-        $errors['_qf_default'] = ts('This contact has already reached the Max Count limit for this event.');
+        $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_OFFLINE);
       }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_preProcess().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
+ */
+function maxcontactcount_civicrm_preProcess($formName, &$form) {
+  if ('CRM_Event_Form_Registration_Register' == $formName) {
+    $contactId = CRM_Core_Session::getLoggedInContactID();
+    if (empty($contactId)) {
+      return;
+    }
+    $params = [
+      'event_id' => $form->getVar('_eventId'),
+      'contact_id' => $contactId,
+    ];
+    if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params)) {
+      CRM_Core_Error::statusBounce(
+        ts(MAX_COUNT_ERROR_MESSAGE_ONLINE),
+        CRM_Utils_System::url('civicrm/event/info', "reset=1&id={$params['event_id']}",
+          FALSE, NULL, FALSE, TRUE
+        )
+      );
     }
   }
 }
@@ -218,5 +253,6 @@ function maxcontactcount_civicrm_buildForm($formName, &$form) {
       $contactId = $form->getVar('_contactId');
     }
     $form->assign('maxContactId', $contactId);
+    $form->assign('errorMessage', ts(MAX_COUNT_ERROR_MESSAGE_OFFLINE));
   }
 }
