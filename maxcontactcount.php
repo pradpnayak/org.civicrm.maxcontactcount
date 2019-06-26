@@ -216,7 +216,11 @@ function maxcontactcount_civicrm_validateForm(
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  */
 function maxcontactcount_civicrm_preProcess($formName, &$form) {
-  if ('CRM_Event_Form_Registration_Register' == $formName) {
+  if (in_array($formName, [
+    'CRM_Event_Form_Registration_Register',
+    'CRM_Event_Form_Registration_AdditionalParticipant',
+    'CRM_Event_Form_Registration_Confirm'
+  ])) {
     $contactId = CRM_Core_Session::getLoggedInContactID();
     if (empty($contactId)) {
       return;
