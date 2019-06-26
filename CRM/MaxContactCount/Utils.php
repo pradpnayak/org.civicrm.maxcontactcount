@@ -77,10 +77,11 @@ class CRM_Maxcontactcount_Utils {
    * Check if contact has exceeded max count for event.
    *
    * @param array $params
+   * @param int $additionalParticipantCount
    *
    * @return int|bool
    */
-  public static function isContactExceededMaxCount($params) {
+  public static function isContactExceededMaxCount($params, $additionalParticipantCount = 0) {
     if (empty($params['event_id']) || empty($params['contact_id'])) {
       return 0;
     }
@@ -93,7 +94,7 @@ class CRM_Maxcontactcount_Utils {
       $registeredCount = self::getContactTicketCount(
         $params['contact_id'],
         $params['event_id']
-      );
+      ) + $additionalParticipantCount;
       if ($registeredCount >= $maxCount) {
         return TRUE;
       }

@@ -208,6 +208,29 @@ function maxcontactcount_civicrm_validateForm(
       }
     }
   }
+  if (in_array($formName, [
+    'CRM_Event_Form_Registration_Register',
+  ])) {
+    $contactId = $form->getContactID();
+    if (empty($contactId)) {
+
+    }
+    $eventId = $form->getVar('_eventId');
+    if (empty($contactId) && empty($eventId)) {
+      return;
+    }
+    $additionalParticipantCount = CRM_Utils_Array::value('additional_participants', $fields);
+    if (empty($additionalParticipantCount)) {
+      $additionalParticipantCount = 0;
+    }
+    $params = [
+      'event_id' => $eventId,
+      'contact_id' => $contactId,
+    ];
+    if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params, $additionalParticipantCount)) {
+      $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_ONLINE);
+    }
+  }
 }
 
 /**
