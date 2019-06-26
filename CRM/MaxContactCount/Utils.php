@@ -17,44 +17,36 @@ class CRM_MaxContactCount_Utils {
   /**
    * Get number of paticipant registered for contact in a event.
    *
-   * @param int $contactId
    * @param int $eventId
    *
    * @return int
    */
-  public static function getContactTicketCount($contactId, $eventId) {
-    if (empty($contactId) || empty($eventId)) {
+  public static function getContactTicketCount($eventId) {
+    if (empty($eventId)) {
       return 0;
     }
-    $cache = "{$contactId}_{$eventId}";
-    if (empty(self::$_contactCount[$cache])) {
-      // FIXME: Status check
+    if (empty(self::$_contactCount[$eventId])) {
+      $cancelledStatusId =  CRM_Core_PseudoConstant::getKey(
+        'CRM_Event_BAO_Participant',
+        'status_id',
+        'Cancelled'
+      );
       $query = "
-        SELECT sum(contact_count) as contact_count
-        FROM (
-          SELECT 1 AS dontcare, COUNT(contact_id) AS contact_count
-            FROM civicrm_participant cp
-            WHERE cp.contact_id = %1 AND cp.event_id = %2
-          UNION
-          SELECT 2, COUNT(cp.id)
-            FROM civicrm_participant cp
-              INNER JOIN civicrm_participant cp1
-                ON cp1.id = cp.registered_by_id
-              INNER JOIN civicrm_contact cc
-                ON cc.id = cp1.contact_id
-            WHERE cc.id = %1 AND cp.event_id = %2
-        ) AS temp
+        SELECT COUNT(DISTINCT contact_id) AS contact_count
+        FROM civicrm_participant cp
+        WHERE cp.event_id = %1
+          AND cp.status_id != %2
       ";
       $queryParams = [
-        1 => [$contactId, 'Int'],
-        2 => [$eventId, 'Int'],
+        1 => [$eventId, 'Int'],
+        2 => [$cancelledStatusId, 'Int'],
       ];
-      self::$_contactCount[$cache] = CRM_Core_DAO::singleValueQuery(
+      self::$_contactCount[$eventId] = CRM_Core_DAO::singleValueQuery(
         $query,
         $queryParams
       );
     }
-    return self::$_contactCount[$cache];
+    return self::$_contactCount[$eventId];
   }
 
   /**
@@ -79,11 +71,11 @@ class CRM_MaxContactCount_Utils {
    * @param array $params
    * @param int $additionalParticipantCount
    *
-   * @return int|bool
+   * @return void
    */
   public static function isContactExceededMaxCount($params, $additionalParticipantCount = 0) {
     if (empty($params['event_id']) || empty($params['contact_id'])) {
-      return 0;
+      return;
     }
     $maxCountCustomFieldId = self::getCustomFieldId();
     try {
@@ -91,17 +83,25 @@ class CRM_MaxContactCount_Utils {
         'return' => "custom_{$maxCountCustomFieldId}",
         'id' => $params['event_id'],
       ]);
+      if (empty($maxCount)) {
+        return;
+      }
+      $pcount = civicrm_api3('Participant', 'getcount', [
+        'event_id' => $params['event_id'],
+        'contact_id' => $params['contact_id'],
+        'status_id' => ['!=' => 'Cancelled'],
+      ]);
+      if ($pcount) {
+        $maxCount += 1;
+      }
       $registeredCount = self::getContactTicketCount(
-        $params['contact_id'],
         $params['event_id']
       ) + $additionalParticipantCount;
-      if ($registeredCount >= $maxCount) {
-        return TRUE;
-      }
+      return ($maxCount - $registeredCount);
     }
     catch (Exception $e) {
     }
-    return 0;
+    return;
   }
 
 }

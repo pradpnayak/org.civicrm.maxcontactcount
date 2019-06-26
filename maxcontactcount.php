@@ -4,12 +4,8 @@ require_once 'maxcontactcount.civix.php';
 use CRM_Maxcontactcount_ExtensionUtil as E;
 
 define(
-  'MAX_COUNT_ERROR_MESSAGE_OFFLINE',
-  'This contact has already reached the Max Count limit for this event.'
-);
-define(
-  'MAX_COUNT_ERROR_MESSAGE_ONLINE',
-  'You have already reached the Max Count limit for this event.'
+  'MAX_COUNT_ERROR_MESSAGE',
+  'This event has already reached the Max Count limit for the contact.'
 );
 
 /**
@@ -203,8 +199,9 @@ function maxcontactcount_civicrm_validateForm(
         'event_id' => $fields['event_id'],
         'contact_id' => $contactId,
       ];
-      if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params)) {
-        $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_OFFLINE);
+      $count = CRM_MaxContactCount_Utils::isContactExceededMaxCount($params);
+      if (!is_null($count) && $count <= 0) {
+        $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE);
       }
     }
   }
@@ -228,8 +225,9 @@ function maxcontactcount_civicrm_validateForm(
       'event_id' => $eventId,
       'contact_id' => $contactId,
     ];
-    if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params, $additionalParticipantCount)) {
-      $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE_ONLINE);
+    $count = CRM_MaxContactCount_Utils::isContactExceededMaxCount($params, $additionalParticipantCount);
+    if (!is_null($count) && $count <= 0) {
+      $errors['_qf_default'] = ts(MAX_COUNT_ERROR_MESSAGE);
     }
   }
 }
@@ -253,9 +251,10 @@ function maxcontactcount_civicrm_preProcess($formName, &$form) {
       'event_id' => $form->getVar('_eventId'),
       'contact_id' => $contactId,
     ];
-    if (CRM_MaxContactCount_Utils::isContactExceededMaxCount($params)) {
+    $count = CRM_MaxContactCount_Utils::isContactExceededMaxCount($params);
+    if (!is_null($count) && $count <= 0) {
       CRM_Core_Error::statusBounce(
-        ts(MAX_COUNT_ERROR_MESSAGE_ONLINE),
+        ts(MAX_COUNT_ERROR_MESSAGE),
         CRM_Utils_System::url('civicrm/event/info', "reset=1&id={$params['event_id']}",
           FALSE, NULL, FALSE, TRUE
         )
@@ -281,6 +280,6 @@ function maxcontactcount_civicrm_buildForm($formName, &$form) {
       $contactId = $form->getVar('_contactId');
     }
     $form->assign('maxContactId', $contactId);
-    $form->assign('errorMessage', ts(MAX_COUNT_ERROR_MESSAGE_OFFLINE));
+    $form->assign('errorMessage', ts(MAX_COUNT_ERROR_MESSAGE));
   }
 }
