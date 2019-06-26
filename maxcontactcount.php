@@ -168,3 +168,55 @@ function maxcontactcount_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) 
 function maxcontactcount_civicrm_entityTypes(&$entityTypes) {
   _maxcontactcount_civix_civicrm_entityTypes($entityTypes);
 }
+
+/**
+ * Implements hook_civicrm_validateForm().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_validateForm
+ */
+function maxcontactcount_civicrm_validateForm(
+  $formName,
+  &$fields,
+  &$files,
+  &$form,
+  &$errors
+) {
+  if ('CRM_Event_Form_Participant' == $formName && !$form->getVar('_id')) {
+    if (!empty($fields['event_id'])) {
+      $contactId = CRM_Utils_Array::value('contact_id', $fields);
+      if (empty($contactId)) {
+        $contactId = $form->getVar('_contactId');
+      }
+      if (empty($contactId)) {
+        return;
+      }
+      $params = [
+        'event_id' => $fields['event_id'],
+        'contact_id' => $contactId,
+      ];
+      if (CRM_Maxcontactcount_Utils::isContactExceededMaxCount($params)) {
+        $errors['_qf_default'] = ts('This contact has already reached the Max Count limit for this event.');
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_buildForm().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_buildForm
+ */
+function maxcontactcount_civicrm_buildForm($formName, &$form) {
+  if ('CRM_Event_Form_Participant' == $formName && !$form->getVar('_id')) {
+    CRM_Core_Region::instance('page-body')->add([
+      'template' => 'CRM/MaxContactCount/Form/Participant.tpl',
+    ]);
+    if ($form->getVar('_context') == 'standalone') {
+      $contactId = NULL;
+    }
+    else {
+      $contactId = $form->getVar('_contactId');
+    }
+    $form->assign('maxContactId', $contactId);
+  }
+}
